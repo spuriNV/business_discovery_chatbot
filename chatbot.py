@@ -1,13 +1,14 @@
-import spacy
-import nltk
-import re
 import json
 import random
-import requests
+import re
 from typing import List, Dict, Tuple
+
+import numpy as np
+import nltk
+import requests
+import spacy
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-import numpy as np
 
 # Download required NLTK data
 try:
