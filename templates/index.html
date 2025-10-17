@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NLP Chatbot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 1000px;
+            height: 85vh;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 24px;
+            text-align: center;
+            position: relative;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chat-header h1 {
+            font-size: 1.8em;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .chat-header p {
+            font-size: 0.9em;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        .status-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4caf50;
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+        }
+
+        .status-indicator.error {
+            background: #f44336;
+            box-shadow: 0 0 10px rgba(244, 67, 54, 0.5);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+            scroll-behavior: smooth;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.bot {
+            justify-content: flex-start;
+        }
+
+        .message-content {
+            max-width: 75%;
+            padding: 16px 20px;
+            border-radius: 20px;
+            word-wrap: break-word;
+            line-height: 1.5;
+            position: relative;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 8px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .message.bot .message-content {
+            background: white;
+            color: #2d3748;
+            border: 1px solid #e2e8f0;
+            border-bottom-left-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .message-info {
+            font-size: 0.75em;
+            color: #718096;
+            margin-top: 8px;
+            padding: 4px 8px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            display: inline-block;
+        }
+
+        .business-card {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            margin: 12px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .business-name {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 1.1em;
+            margin-bottom: 8px;
+        }
+
+        .business-details {
+            font-size: 0.9em;
+            color: #4a5568;
+            line-height: 1.4;
+        }
+
+        .chat-input-container {
+            padding: 24px;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            border-radius: 0 0 24px 24px;
+        }
+
+        .chat-input-form {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 16px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+        }
+
+        .chat-input:focus {
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .send-button {
+            padding: 16px 28px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .send-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        .send-button:active {
+            transform: translateY(0);
+        }
+
+        .send-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 12px 20px;
+            color: #718096;
+            font-style: italic;
+            font-size: 0.9em;
+            background: #f7fafc;
+            border-radius: 12px;
+            margin: 8px 0;
+            animation: pulse 1.5s infinite;
+        }
+
+        .typing-indicator.show {
+            display: block;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .quick-action-btn {
+            padding: 8px 16px;
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            color: #4a5568;
+            transition: all 0.2s ease;
+        }
+
+        .quick-action-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .welcome-message {
+            text-align: center;
+            padding: 20px;
+            color: #4a5568;
+            font-size: 0.9em;
+            background: #f7fafc;
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .chat-container {
+                height: 95vh;
+                border-radius: 16px;
+            }
+            
+            .message-content {
+                max-width: 85%;
+            }
+            
+            .chat-header h1 {
+                font-size: 1.5em;
+            }
+            
+            .quick-actions {
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .chat-header {
+                padding: 16px;
+            }
+            
+            .chat-messages {
+                padding: 16px;
+            }
+            
+            .chat-input-container {
+                padding: 16px;
+            }
+            
+            .message-content {
+                max-width: 90%;
+                padding: 12px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>🏪 Local Business Discovery Bot</h1>
+            <p>Find restaurants, shops, services, and entertainment in your area</p>
+            <div class="status-indicator" id="statusIndicator"></div>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="welcome-message">
+                👋 Welcome! I'm your local business discovery assistant. I can help you find restaurants, shops, services, and entertainment in your area. What are you looking for?
+            </div>
+            
+            <div class="quick-actions">
+                <button class="quick-action-btn" onclick="sendQuickMessage('Find me a restaurant')">🍽️ Restaurants</button>
+                <button class="quick-action-btn" onclick="sendQuickMessage('Where can I get coffee?')">☕ Coffee</button>
+                <button class="quick-action-btn" onclick="sendQuickMessage('Find me a gym')">💪 Gym</button>
+                <button class="quick-action-btn" onclick="sendQuickMessage('What entertainment options?')">🎬 Entertainment</button>
+                <button class="quick-action-btn" onclick="sendQuickMessage('Find me a hair salon')">💇 Beauty</button>
+            </div>
+        </div>
+        
+        <div class="typing-indicator" id="typingIndicator">
+            Bot is typing...
+        </div>
+        
+        <div class="chat-input-container">
+            <form class="chat-input-form" id="chatForm">
+                <input 
+                    type="text" 
+                    class="chat-input" 
+                    id="messageInput" 
+                    placeholder="What local business are you looking for?" 
+                    autocomplete="off"
+                    required
+                >
+                <button type="submit" class="send-button" id="sendButton">
+                    Send
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        class ChatInterface {
+            constructor() {
+                this.chatMessages = document.getElementById('chatMessages');
+                this.messageInput = document.getElementById('messageInput');
+                this.sendButton = document.getElementById('sendButton');
+                this.chatForm = document.getElementById('chatForm');
+                this.typingIndicator = document.getElementById('typingIndicator');
+                this.statusIndicator = document.getElementById('statusIndicator');
+                
+                this.setupEventListeners();
+                this.checkHealth();
+                this.hideWelcomeMessage();
+            }
+            
+            hideWelcomeMessage() {
+                // Hide welcome message after first user message
+                const welcomeMessage = document.querySelector('.welcome-message');
+                const quickActions = document.querySelector('.quick-actions');
+                if (welcomeMessage && quickActions) {
+                    const observer = new MutationObserver((mutations) => {
+                        mutations.forEach((mutation) => {
+                            if (mutation.addedNodes.length > 0) {
+                                // Check if a user message was added
+                                const userMessages = document.querySelectorAll('.message.user');
+                                if (userMessages.length > 0) {
+                                    welcomeMessage.style.display = 'none';
+                                    quickActions.style.display = 'none';
+                                    observer.disconnect();
+                                }
+                            }
+                        });
+                    });
+                    observer.observe(this.chatMessages, { childList: true });
+                }
+            }
+            
+            setupEventListeners() {
+                this.chatForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.sendMessage();
+                });
+                
+                this.messageInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.sendMessage();
+                    }
+                });
+            }
+            
+            async checkHealth() {
+                try {
+                    const response = await fetch('/health');
+                    const data = await response.json();
+                    if (data.status === 'healthy') {
+                        this.statusIndicator.style.background = '#4caf50';
+                    }
+                } catch (error) {
+                    this.statusIndicator.style.background = '#f44336';
+                }
+            }
+            
+            async sendMessage() {
+                const message = this.messageInput.value.trim();
+                if (!message) return;
+                
+                // Add user message to chat
+                this.addMessage(message, 'user');
+                
+                // Clear input and disable send button
+                this.messageInput.value = '';
+                this.sendButton.disabled = true;
+                this.showTyping();
+                
+                try {
+                    const response = await fetch('/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ message: message })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        this.addBotMessage(data.response, data);
+                    } else {
+                        this.addBotMessage(data.response || 'Sorry, I encountered an error.', { error: data.error });
+                    }
+                } catch (error) {
+                    this.addBotMessage('Sorry, I\'m having trouble connecting. Please try again.', { error: error.message });
+                } finally {
+                    this.hideTyping();
+                    this.sendButton.disabled = false;
+                    this.messageInput.focus();
+                }
+            }
+            
+            addMessage(message, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}`;
+                
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'message-content';
+                contentDiv.textContent = message;
+                
+                messageDiv.appendChild(contentDiv);
+                this.chatMessages.appendChild(messageDiv);
+                this.scrollToBottom();
+            }
+            
+            addBotMessage(message, analysis = {}) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message bot';
+                
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'message-content';
+                
+                // Format business recommendations with better styling
+                if (message.includes('**') && message.includes('📍')) {
+                    contentDiv.innerHTML = this.formatBusinessMessage(message);
+                } else {
+                    contentDiv.textContent = message;
+                }
+                
+                // Add analysis info if available
+                if (analysis.intent || analysis.sentiment) {
+                    const infoDiv = document.createElement('div');
+                    infoDiv.className = 'message-info';
+                    
+                    let infoText = '';
+                    if (analysis.intent) {
+                        infoText += `Intent: ${analysis.intent}`;
+                    }
+                    if (analysis.confidence) {
+                        infoText += ` (${Math.round(analysis.confidence * 100)}% confidence)`;
+                    }
+                    if (analysis.sentiment) {
+                        infoText += ` | Sentiment: ${analysis.sentiment}`;
+                    }
+                    
+                    infoDiv.textContent = infoText;
+                    contentDiv.appendChild(infoDiv);
+                }
+                
+                messageDiv.appendChild(contentDiv);
+                this.chatMessages.appendChild(messageDiv);
+                this.scrollToBottom();
+            }
+            
+            formatBusinessMessage(message) {
+                // Convert business message to HTML with better formatting
+                let html = message;
+                
+                // Convert **bold** to <strong>
+                html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                
+                // Convert line breaks to <br>
+                html = html.replace(/\n/g, '<br>');
+                
+                // Add business card styling for business listings
+                if (html.includes('Here are some great options')) {
+                    html = html.replace(/<strong>(\d+)\.\s*(.*?)<\/strong>/g, 
+                        '<div class="business-card"><div class="business-name">$2</div>');
+                    html = html.replace(/📍\s*(.*?)<br>/g, '<div class="business-details">📍 $1</div>');
+                    html = html.replace(/⭐\s*(.*?)<br>/g, '<div class="business-details">⭐ $1</div>');
+                    html = html.replace(/🕒\s*(.*?)<br>/g, '<div class="business-details">🕒 $1</div>');
+                    html = html.replace(/📞\s*(.*?)<br>/g, '<div class="business-details">📞 $1</div>');
+                    html = html.replace(/💬\s*(.*?)<br>/g, '<div class="business-details">💬 $1</div>');
+                }
+                
+                return html;
+            }
+            
+            showTyping() {
+                this.typingIndicator.classList.add('show');
+                this.scrollToBottom();
+            }
+            
+            hideTyping() {
+                this.typingIndicator.classList.remove('show');
+            }
+            
+            scrollToBottom() {
+                this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+            }
+        }
+        
+        // Quick message function for buttons
+        function sendQuickMessage(message) {
+            const messageInput = document.getElementById('messageInput');
+            const sendButton = document.getElementById('sendButton');
+            
+            messageInput.value = message;
+            sendButton.click();
+        }
+        
+        // Initialize the chat interface when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new ChatInterface();
+        });
+    </script>
+</body>
+</html>
