@@ -553,6 +553,8 @@
                     html = html.replace(/🕒\s*(.*?)<br>/g, '<div class="business-details">🕒 $1</div>');
                     html = html.replace(/📞\s*(.*?)<br>/g, '<div class="business-details">📞 $1</div>');
                     html = html.replace(/💬\s*(.*?)<br>/g, '<div class="business-details">💬 $1</div>');
+                    // Close business card divs properly
+                    html = html.replace(/(<div class="business-details">💬.*?<\/div>)/g, '$1</div>');
                 }
                 
                 return html;
