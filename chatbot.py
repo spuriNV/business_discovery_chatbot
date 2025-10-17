@@ -294,7 +294,6 @@ class LocalBusinessDiscoveryBot:
         ]
         
         for pattern in location_patterns:
-            import re
             matches = re.findall(pattern, text, re.IGNORECASE)
             if matches:
                 locations.extend(matches)
