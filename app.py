@@ -27,6 +27,13 @@ def chat():
                 'error': 'Empty message'
             }), 400
         
+        # Validate message length
+        if len(user_message) > 500:
+            return jsonify({
+                'response': 'Message too long. Please keep it under 500 characters.',
+                'error': 'Message too long'
+            }), 400
+        
         # Get chatbot response
         result = chatbot.get_chat_analysis(user_message)
         
