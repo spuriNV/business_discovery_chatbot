@@ -327,7 +327,7 @@ class LocalBusinessDiscoveryBot:
             headers = {
                 'User-Agent': 'LocalBusinessDiscoveryBot/1.0 (Educational Purpose)'
             }
-            response = requests.get(base_url, params=params, headers=headers, timeout=10)
+            response = requests.get(base_url, params=params, headers=headers, timeout=15)
             if response.status_code == 200:
                 data = response.json()
                 for item in data:
