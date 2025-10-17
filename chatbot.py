@@ -347,6 +347,9 @@ class LocalBusinessDiscoveryBot:
                         businesses.append(business)
         except Exception as e:
             print(f"API Error: {e}")
+            # Log the error for debugging
+            import logging
+            logging.error(f"Failed to fetch businesses from API: {e}")
         
         return businesses
     
