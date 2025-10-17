@@ -302,6 +302,12 @@ class LocalBusinessDiscoveryBot:
         if locations:
             return locations[0]
         
+        # Try to extract any capitalized words that might be locations
+        words = text.split()
+        capitalized_words = [word for word in words if word[0].isupper() and len(word) > 2]
+        if capitalized_words:
+            return capitalized_words[0]
+        
         return "New York"  # Default fallback
     
     def fetch_businesses_from_apis(self, query: str, location: str = None) -> List[Dict]:
